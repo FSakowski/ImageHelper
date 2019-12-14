@@ -15,18 +15,23 @@ namespace ImageHelper
 
         public Bitmap Output { get; private set; }
 
-        public ImageProcessor(Bitmap source)
+        public ImageProcessor()
         {
-            Source = source ?? throw new ArgumentNullException(nameof(source));
             imageOperations = new List<IOperation>();
         }
 
-        public void Add(IOperation imgOp)
+        public ImageProcessor(Bitmap source) : this()
+        {
+            Source = source ?? throw new ArgumentNullException(nameof(source));
+        }
+
+        public ImageProcessor Add(IOperation imgOp)
         {
             if (imgOp == null)
                 throw new ArgumentNullException(nameof(imgOp));
 
             imageOperations.Add(imgOp);
+            return this;
         }
 
         public void Clear()
@@ -36,17 +41,40 @@ namespace ImageHelper
 
         public static ImageProcessor FromFile(string fileName)
         {
+            return new ImageProcessor().LoadImage(fileName);
+        }
+
+        public ImageProcessor LoadImage(string fileName)
+        {
             if (String.IsNullOrEmpty(fileName))
                 throw new ArgumentNullException(nameof(fileName));
 
-            Bitmap source = new Bitmap(fileName);
+            Source = new Bitmap(fileName);
+            EnsurePixelFormat();
+            return this;
+        }
 
-            if (source.PixelFormat == PixelFormat.Format32bppArgb)
-                return new ImageProcessor(source);
+        public ImageProcessor LoadImage(Image img)
+        {
+            if (img == null)
+                throw new ArgumentNullException(nameof(img));
 
-            Bitmap convert = source.Clone(new Rectangle(0, 0, source.Width, source.Height), PixelFormat.Format32bppArgb);
-            source.Dispose();
-            return new ImageProcessor(convert);
+            Source = new Bitmap(img);
+            EnsurePixelFormat();
+            return this;
+        }
+
+        private void EnsurePixelFormat()
+        {
+            if (Source == null)
+                return;
+
+            if (Source.PixelFormat != PixelFormat.Format32bppArgb)
+            {
+                Bitmap converted = Source.Clone(new Rectangle(0, 0, Source.Width, Source.Height), PixelFormat.Format32bppArgb);
+                Source.Dispose();
+                Source = converted;
+            }
         }
 
         public void Execute()
@@ -71,7 +99,8 @@ namespace ImageHelper
             if (String.IsNullOrEmpty(fileName))
                 throw new ArgumentNullException(nameof(fileName));
 
-            Execute();
+            if (Output == null)
+                Execute();
 
             if (Output != null)
                 Output.Save(fileName);

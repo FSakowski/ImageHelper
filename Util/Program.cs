@@ -11,12 +11,16 @@ namespace Util
     {
         static void Main(string[] args)
         {
-            using (ImageProcessor processor = ImageProcessor.FromFile(@"D:\Pictures\Sync\2019\09\IMG_1149.JPG"))
+            using (ImageProcessor processor = ImageProcessor.FromFile(@"D:\Pictures\Profilbilder\IMG_9084.JPG"))
             {
-                processor.Add(Grinder.MakeRound(1, 50));
-                processor.Add(ColorAdaption.Decolorize());
-                processor.Add(ColorAdaption.Lighten(-30));
-                processor.Add(ColorAdaption.Invert());
+                processor
+                    .Add(Spinner.OrientToExif())
+                    .Add(Grinder.MakeRound(1, 20))
+                    .Add(ColorAdaption.Decolorize())
+                    .Add(ColorAdaption.Lighten(-30))
+                    //.Add(ColorAdaption.Invert());
+                    ;
+                    
                 processor.SaveToFile(@"C:\Users\flo\Pictures\rounded.png");
             }
         }
